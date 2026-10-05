@@ -229,6 +229,67 @@ def media_response(rendered):
 def index():
     return render_template('index.html', release_version=RELEASEVERSION)
 
+@app.route('/verify')
+def verify_player_guild():
+    uid = request.args.get('uid')
+    guild_uid = request.args.get('guildUid')
+
+    if not uid or not guild_uid:
+        return jsonify({
+            "verified": False,
+            "error": "Both uid and guildUid are required."
+        }), 400
+
+    try:
+        player_data, safe_uid, safe_region = get_player_data(uid)
+
+        basic = player_data.get("basicInfo") or {}
+        guild = player_data.get("clanBasicInfo") or {}
+
+        actual_guild_uid = str(guild.get("clanId") or "")
+        submitted_guild_uid = str(guild_uid).strip()
+
+        verified = actual_guild_uid == submitted_guild_uid
+
+        return jsonify({
+            "verified": verified,
+            "player": {
+                "uid": safe_uid,
+                "name": basic.get("nickname"),
+                "region": basic.get("region") or safe_region,
+                "level": basic.get("level"),
+                "likes": basic.get("liked")
+            },
+            "guild": {
+                "uid": actual_guild_uid or None,
+                "name": guild.get("clanName"),
+                "level": guild.get("clanLevel"),
+                "members": guild.get("memberNum"),
+                "capacity": guild.get("capacity")
+            }
+        }), 200
+
+    except UpstreamError as e:
+        return jsonify({
+            "verified": False,
+            "error": str(e),
+            "code": e.code
+        }), e.status
+
+    except ValueError as e:
+        return jsonify({
+            "verified": False,
+            "error": str(e),
+            "code": "INVALID_INPUT"
+        }), 400
+
+    except Exception:
+        return jsonify({
+            "verified": False,
+            "error": "Verification failed. Please try again."
+        }), 500
+
+
 @app.route('/player-info')
 def get_account_info():
     region = request.args.get('region')
