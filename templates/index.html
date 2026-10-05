@@ -1,156 +1,729 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="midnight">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DropZone — Free Fire Player Lookup</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b14">
+  <meta name="color-scheme" content="dark light">
+
+  <title>DropZone — Free Fire Player Lookup</title>
+  <meta name="description" content="Fast Free Fire player information lookup powered by DropZone.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
+  <div class="app-shell">
 
-<div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
-
-<nav class="glass nav">
-  <div class="logo"><span class="logo-mark">L</span><span class="logo-name">DropZone</span></div>
-  <div class="live"><span class="pulse"></span>Online · <span id="obVer">{{ release_version }}</span></div>
-</nav>
-
-<main class="wrap">
-
-  <section class="hero">
-    <h1>Free Fire Player Lookup</h1>
-    <p>Paste a UID and get live stats, ranks, guild info and official profile media.</p>
-  </section>
-
-  <section class="glass search">
-    <form id="frm" autocomplete="off">
-      <div class="row">
-        <input id="uid" type="text" inputmode="numeric" placeholder="Enter player UID">
-        <button id="go" type="submit"><i class="fa-solid fa-magnifying-glass"></i><span id="goTxt">Search</span></button>
-      </div>
-    </form>
-    <div id="hist" class="hist" hidden>
-      <span>Recent</span>
-      <div id="histChips" class="hist-chips"></div>
-      <button type="button" id="histClear" title="Clear history"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Ambient background -->
+    <div class="ambient" aria-hidden="true">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="orb orb-c"></div>
+      <div class="grid-glow"></div>
     </div>
-  </section>
 
-  <div id="err" class="glass err" hidden></div>
+    <!-- Top navigation -->
+    <header class="topbar glass">
+      <a href="#home" class="brand" data-page="home" aria-label="DropZone Home">
+        <span class="brand-mark">D</span>
+        <span class="brand-copy">
+          <strong>DropZone</strong>
+          <small>By Senpai</small>
+        </span>
+      </a>
 
-  <section id="empty" class="glass empty">
-    <div class="empty-ico"><i class="fa-solid fa-gamepad"></i></div>
-    <h2>No player loaded yet</h2>
-    <p>Search a UID above — the profile card will appear here.</p>
-  </section>
-
-  <section id="out" hidden>
-
-    <div class="glass profile">
-      <div class="p-top">
-        <h2 id="pName">—</h2>
-        <div class="pills">
-          <span class="pill">Lv <b id="pLvl">—</b></span>
-          <span class="pill"><i class="fa-solid fa-heart"></i> <b id="pLikes">—</b></span>
-          <span class="pill" id="pRegion">—</span>
-          <span class="pill"><i class="fa-solid fa-star"></i> <b id="pCredit">—</b></span>
-          <span class="pill"><i class="fa-solid fa-gem"></i> <b id="pDiamonds">—</b></span>
+      <div class="top-actions">
+        <div class="online-pill">
+          <span class="status-dot"></span>
+          <span>Online</span>
+          <span class="version">v<span id="obVer">{{ release_version }}</span></span>
         </div>
-        <div class="opened"><i class="fa-regular fa-calendar-check"></i> ID opened · <span id="pSince">—</span></div>
-      </div>
-      <div class="banner"><img id="pBanner" alt="player banner"></div>
-      <div id="src" class="src">Official media loads after lookup</div>
-      <div class="dl-row">
-        <button type="button" id="dlBanner"><i class="fa-solid fa-download"></i>Banner</button>
-        <button type="button" id="dlAvatar"><i class="fa-solid fa-download"></i>Avatar</button>
-      </div>
-    </div>
 
-    <div class="grid">
-      <div class="glass card">
-        <h3><i class="fa-solid fa-user"></i>Account</h3>
-        <dl>
-          <div><dt>UID</dt><dd id="cUid">—</dd></div>
-          <div><dt>Name</dt><dd id="cName">—</dd></div>
-          <div><dt>Level / EXP</dt><dd><span id="cLvl">—</span> / <span id="cExp">—</span></dd></div>
-          <div><dt>Region</dt><dd id="cRegion">—</dd></div>
-          <div><dt>Likes</dt><dd id="cLikes">—</dd></div>
-          <div><dt>Gender</dt><dd id="cGender">—</dd></div>
-          <div><dt>Language</dt><dd id="cLang">—</dd></div>
-          <div><dt>Mode</dt><dd id="cMode">—</dd></div>
-          <div><dt>Bio</dt><dd id="cBio" class="clip">—</dd></div>
-        </dl>
-      </div>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Change theme" title="Change theme">
+          <span class="icon">◐</span>
+        </button>
 
-      <div class="glass card">
-        <h3><i class="fa-solid fa-trophy"></i>Ranks</h3>
-        <dl>
-          <div><dt>BR points</dt><dd id="rBr">—</dd></div>
-          <div><dt>BR rank</dt><dd id="rBrRank">—</dd></div>
-          <div><dt>BR max rank</dt><dd id="rBrMax">—</dd></div>
-          <div><dt>CS points</dt><dd id="rCs">—</dd></div>
-          <div><dt>CS rank</dt><dd id="rCsRank">—</dd></div>
-          <div><dt>CS max rank</dt><dd id="rCsMax">—</dd></div>
-          <div><dt>Season</dt><dd id="rSeason">—</dd></div>
-          <div><dt>Version</dt><dd id="rVer">—</dd></div>
-          <div><dt>Created</dt><dd id="rCreated">—</dd></div>
-          <div><dt>Last login</dt><dd id="rLogin">—</dd></div>
-        </dl>
+        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
+    </header>
 
-      <div class="glass card">
-        <h3><i class="fa-solid fa-shirt"></i>Loadout</h3>
-        <dl>
-          <div><dt>Avatar ID</dt><dd id="lAvatar">—</dd></div>
-          <div><dt>Banner ID</dt><dd id="lBanner">—</dd></div>
-          <div><dt>Character</dt><dd id="lChar">—</dd></div>
-          <div><dt>Awakened</dt><dd id="lAwake">—</dd></div>
-          <div><dt>Clothes</dt><dd id="lClothes">—</dd></div>
-          <div><dt>Skills</dt><dd id="lSkills">—</dd></div>
-          <div><dt>Badges</dt><dd id="lBadges">—</dd></div>
-          <div><dt>Title / Pin</dt><dd><span id="lTitle">—</span> / <span id="lPin">—</span></dd></div>
-        </dl>
-      </div>
-
-      <div class="glass card">
-        <h3><i class="fa-solid fa-paw"></i>Pet</h3>
-        <dl>
-          <div><dt>Pet ID</dt><dd id="tId">—</dd></div>
-          <div><dt>Level</dt><dd id="tLvl">—</dd></div>
-          <div><dt>EXP</dt><dd id="tExp">—</dd></div>
-          <div><dt>Selected</dt><dd id="tSel">—</dd></div>
-          <div><dt>Skill</dt><dd id="tSkill">—</dd></div>
-          <div><dt>Skin</dt><dd id="tSkin">—</dd></div>
-        </dl>
-      </div>
-
-      <div class="glass card wide">
-        <h3><i class="fa-solid fa-people-group"></i>Guild</h3>
-        <dl class="cols">
-          <div><dt>Name</dt><dd id="gName">—</dd></div>
-          <div><dt>ID</dt><dd id="gId">—</dd></div>
-          <div><dt>Level</dt><dd id="gLvl">—</dd></div>
-          <div><dt>Members</dt><dd id="gMem">—</dd></div>
-        </dl>
-        <p class="leader" id="gLeader">—</p>
-        <div class="actions">
-          <button type="button" id="again"><i class="fa-solid fa-rotate-left"></i>New search</button>
-          <button type="button" id="rawToggle"><i class="fa-solid fa-code"></i>Raw JSON</button>
-          <button type="button" id="rawCopy"><i class="fa-solid fa-copy"></i><span id="rawCopyTxt">Copy JSON</span></button>
+    <!-- Menu -->
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+      <div class="menu-head">
+        <div>
+          <span class="eyebrow">NAVIGATION</span>
+          <h3>DropZone</h3>
         </div>
-        <pre id="raw" hidden><code id="rawBody">{}</code></pre>
+        <button class="icon-btn close-menu" id="closeMenu" type="button">×</button>
+      </div>
+
+      <nav class="menu-links">
+        <button class="menu-link active" data-page="home">
+          <span class="menu-icon">⌂</span>
+          <span>
+            <b>Home</b>
+            <small>Overview & quick search</small>
+          </span>
+        </button>
+
+        <button class="menu-link" data-page="lookup">
+          <span class="menu-icon">⌕</span>
+          <span>
+            <b>Player Lookup</b>
+            <small>Find Free Fire profiles</small>
+          </span>
+        </button>
+
+        <button class="menu-link" data-page="support">
+          <span class="menu-icon">?</span>
+          <span>
+            <b>Support</b>
+            <small>Help & troubleshooting</small>
+          </span>
+        </button>
+
+        <button class="menu-link" data-page="api">
+          <span class="menu-icon">{ }</span>
+          <span>
+            <b>API & About</b>
+            <small>How DropZone works</small>
+          </span>
+        </button>
+
+        <div class="menu-divider"></div>
+
+        <button class="menu-link" id="menuTheme">
+          <span class="menu-icon">◐</span>
+          <span>
+            <b>Appearance</b>
+            <small>Change your theme</small>
+          </span>
+          <span class="menu-arrow">›</span>
+        </button>
+      </nav>
+
+      <div class="menu-footer">
+        <div class="mini-status">
+          <span class="status-dot"></span>
+          <div>
+            <b>Systems operational</b>
+            <small>DropZone services are ready</small>
+          </div>
+        </div>
+        <span>DropZone By Senpai</span>
+      </div>
+    </aside>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main>
+
+      <!-- HOME -->
+      <section class="page active" id="page-home" data-page-section="home">
+        <div class="hero">
+          <div class="hero-badge">
+            <span class="pulse-ring"></span>
+            FREE FIRE DATA TOOL
+          </div>
+
+          <h1>
+            Know the player.<br>
+            <span>Instantly.</span>
+          </h1>
+
+          <p>
+            Search any Free Fire UID and explore detailed account,
+            rank, loadout, pet and guild information in seconds.
+          </p>
+
+          <div class="hero-actions">
+            <button class="primary-btn hero-btn" data-page="lookup">
+              <span>Search Player</span>
+              <span class="btn-arrow">→</span>
+            </button>
+
+            <button class="secondary-btn" data-page="support">
+              <span>Need Help?</span>
+            </button>
+          </div>
+
+          <div class="hero-stats">
+            <div>
+              <strong>01</strong>
+              <span>Enter UID</span>
+            </div>
+            <i></i>
+            <div>
+              <strong>02</strong>
+              <span>Search</span>
+            </div>
+            <i></i>
+            <div>
+              <strong>03</strong>
+              <span>Explore</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card glass">
+            <div class="feature-icon blue">⌕</div>
+            <div>
+              <span class="eyebrow">FAST SEARCH</span>
+              <h3>Instant lookup</h3>
+              <p>Enter a UID and retrieve available player data without unnecessary steps.</p>
+            </div>
+          </article>
+
+          <article class="feature-card glass">
+            <div class="feature-icon violet">◈</div>
+            <div>
+              <span class="eyebrow">DETAILED</span>
+              <h3>More than a name</h3>
+              <p>View ranks, account information, loadout, pet and guild details.</p>
+            </div>
+          </article>
+
+          <article class="feature-card glass">
+            <div class="feature-icon green">↻</div>
+            <div>
+              <span class="eyebrow">SMART HISTORY</span>
+              <h3>Recent searches</h3>
+              <p>Your recent UIDs stay on your device so you can quickly search them again.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- LOOKUP -->
+      <section class="page" id="page-lookup" data-page-section="lookup">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">PLAYER LOOKUP</span>
+            <h2>Find a Free Fire player</h2>
+            <p>Enter a numeric UID to retrieve the latest available profile information.</p>
+          </div>
+
+          <div class="heading-badge">
+            <span class="status-dot"></span>
+            API Ready
+          </div>
+        </div>
+
+        <section class="search-panel glass">
+          <div class="search-label">
+            <div>
+              <span class="eyebrow">PLAYER UID</span>
+              <h3>Search by UID</h3>
+            </div>
+            <span class="search-tip">Example: 123456789</span>
+          </div>
+
+          <form id="frm" autocomplete="off">
+            <div class="input-wrap">
+              <span class="input-icon">⌕</span>
+              <input
+                id="uid"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="15"
+                placeholder="Enter Free Fire UID..."
+                aria-label="Free Fire UID"
+              >
+              <button type="button" class="clear-input" id="clearUid" aria-label="Clear UID">×</button>
+            </div>
+
+            <button id="go" class="primary-btn search-btn" type="submit">
+              <span id="goIcon">⌕</span>
+              <span id="goTxt">Search Player</span>
+              <span class="loader" id="goLoader"></span>
+            </button>
+          </form>
+
+          <div class="search-meta">
+            <span><i class="tiny-dot"></i> Fast response</span>
+            <span><i class="tiny-dot"></i> No account required</span>
+            <span><i class="tiny-dot"></i> Free to use</span>
+          </div>
+        </section>
+
+        <!-- History -->
+        <section class="history-section" id="hist">
+          <div class="section-title">
+            <div>
+              <span class="eyebrow">YOUR DEVICE</span>
+              <h3>Recent searches</h3>
+            </div>
+            <button id="histClear" class="text-btn" type="button">Clear all</button>
+          </div>
+
+          <div id="histChips" class="history-chips"></div>
+        </section>
+
+        <!-- Error -->
+        <div class="alert error-alert" id="err" hidden>
+          <div class="alert-icon">!</div>
+          <div>
+            <strong id="errTitle">Something went wrong</strong>
+            <p id="errMsg"></p>
+          </div>
+          <button id="errClose" type="button">×</button>
+        </div>
+
+        <!-- Empty -->
+        <section class="empty-state glass" id="empty">
+          <div class="empty-orbit">
+            <div class="empty-icon">⌕</div>
+          </div>
+          <span class="eyebrow">READY WHEN YOU ARE</span>
+          <h3>Search a player to begin</h3>
+          <p>Enter a Free Fire UID above and the complete available profile will appear here.</p>
+        </section>
+
+        <!-- Loading -->
+        <section class="loading-state glass" id="loadingState" hidden>
+          <div class="loading-spinner"></div>
+          <span class="eyebrow">LOOKING UP PLAYER</span>
+          <h3>Fetching profile data...</h3>
+          <p>Connecting to DropZone services.</p>
+          <div class="loading-lines">
+            <i></i><i></i><i></i>
+          </div>
+        </section>
+
+        <!-- Result -->
+        <section id="out" hidden>
+
+          <div class="result-toolbar">
+            <div>
+              <span class="eyebrow">PLAYER FOUND</span>
+              <h2>Profile overview</h2>
+            </div>
+
+            <div class="result-actions">
+              <button class="secondary-btn small" id="again" type="button">↻ New Search</button>
+              <button class="icon-btn small" id="rawToggle" type="button" title="View raw JSON">{ }</button>
+            </div>
+          </div>
+
+          <!-- Profile hero -->
+          <article class="profile-hero glass">
+            <div class="profile-banner">
+              <img id="pBanner" alt="Player banner" loading="lazy">
+              <div class="banner-overlay"></div>
+              <div class="profile-avatar">
+                <img id="src" alt="Player avatar" loading="lazy">
+              </div>
+            </div>
+
+            <div class="profile-main">
+              <div class="profile-identity">
+                <span class="profile-kicker">FREE FIRE PLAYER</span>
+                <h2 id="pName">—</h2>
+                <div class="profile-sub">
+                  <span id="pLvl">Level —</span>
+                  <span>•</span>
+                  <span id="pRegion">Region —</span>
+                </div>
+              </div>
+
+              <div class="profile-score">
+                <span>LIKE SCORE</span>
+                <strong id="pLikes">0</strong>
+              </div>
+            </div>
+
+            <div class="profile-stats">
+              <div>
+                <span>Credit Score</span>
+                <strong id="pCredit">—</strong>
+              </div>
+              <div>
+                <span>Diamonds</span>
+                <strong id="pDiamonds">—</strong>
+              </div>
+              <div>
+                <span>Since</span>
+                <strong id="pSince">—</strong>
+              </div>
+            </div>
+
+            <div class="media-actions">
+              <button id="dlBanner" class="secondary-btn small" type="button">↓ Banner</button>
+              <button id="dlAvatar" class="secondary-btn small" type="button">↓ Avatar</button>
+            </div>
+          </article>
+
+          <!-- Account -->
+          <article class="data-card glass">
+            <div class="card-heading">
+              <div>
+                <span class="eyebrow">ACCOUNT</span>
+                <h3>Player information</h3>
+              </div>
+              <span class="card-symbol">01</span>
+            </div>
+
+            <div class="data-grid">
+              <div><span>UID</span><strong id="cUid">—</strong></div>
+              <div><span>Name</span><strong id="cName">—</strong></div>
+              <div><span>Level</span><strong id="cLvl">—</strong></div>
+              <div><span>Experience</span><strong id="cExp">—</strong></div>
+              <div><span>Region</span><strong id="cRegion">—</strong></div>
+              <div><span>Likes</span><strong id="cLikes">—</strong></div>
+              <div><span>Gender</span><strong id="cGender">—</strong></div>
+              <div><span>Language</span><strong id="cLang">—</strong></div>
+              <div><span>Preferred Mode</span><strong id="cMode">—</strong></div>
+              <div class="wide"><span>Bio</span><strong id="cBio">—</strong></div>
+            </div>
+          </article>
+
+          <!-- Ranks -->
+          <div class="two-column">
+            <article class="data-card glass">
+              <div class="card-heading">
+                <div>
+                  <span class="eyebrow">RANKS</span>
+                  <h3>Competitive stats</h3>
+                </div>
+                <span class="card-symbol">02</span>
+              </div>
+
+              <div class="rank-list">
+                <div class="rank-row">
+                  <div class="rank-icon">BR</div>
+                  <div class="rank-info">
+                    <span>Battle Royale</span>
+                    <strong id="rBrRank">—</strong>
+                  </div>
+                  <b id="rBr">—</b>
+                </div>
+
+                <div class="rank-row">
+                  <div class="rank-icon cs">CS</div>
+                  <div class="rank-info">
+                    <span>Clash Squad</span>
+                    <strong id="rCsRank">—</strong>
+                  </div>
+                  <b id="rCs">—</b>
+                </div>
+
+                <div class="rank-progress">
+                  <div>
+                    <span>BR progress</span>
+                    <span id="rBrMax">—</span>
+                  </div>
+                  <div class="progress-track"><i id="rBrProgress"></i></div>
+                </div>
+
+                <div class="rank-progress">
+                  <div>
+                    <span>CS progress</span>
+                    <span id="rCsMax">—</span>
+                  </div>
+                  <div class="progress-track"><i id="rCsProgress"></i></div>
+                </div>
+              </div>
+
+              <div class="rank-meta">
+                <span>Season <b id="rSeason">—</b></span>
+                <span>Version <b id="rVer">—</b></span>
+              </div>
+            </article>
+
+            <article class="data-card glass">
+              <div class="card-heading">
+                <div>
+                  <span class="eyebrow">ACTIVITY</span>
+                  <h3>Account timeline</h3>
+                </div>
+                <span class="card-symbol">03</span>
+              </div>
+
+              <div class="timeline">
+                <div class="timeline-item">
+                  <span class="timeline-dot"></span>
+                  <div>
+                    <span>Account created</span>
+                    <strong id="rCreated">—</strong>
+                  </div>
+                </div>
+
+                <div class="timeline-item">
+                  <span class="timeline-dot"></span>
+                  <div>
+                    <span>Last login</span>
+                    <strong id="rLogin">—</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Loadout -->
+          <article class="data-card glass">
+            <div class="card-heading">
+              <div>
+                <span class="eyebrow">LOADOUT</span>
+                <h3>Profile customization</h3>
+              </div>
+              <span class="card-symbol">04</span>
+            </div>
+
+            <div class="data-grid">
+              <div><span>Avatar</span><strong id="lAvatar">—</strong></div>
+              <div><span>Banner</span><strong id="lBanner">—</strong></div>
+              <div><span>Character</span><strong id="lChar">—</strong></div>
+              <div><span>Awakened</span><strong id="lAwake">—</strong></div>
+              <div><span>Clothes</span><strong id="lClothes">—</strong></div>
+              <div><span>Skills</span><strong id="lSkills">—</strong></div>
+              <div><span>Badges</span><strong id="lBadges">—</strong></div>
+              <div><span>Title</span><strong id="lTitle">—</strong></div>
+              <div class="wide"><span>Profile Pin</span><strong id="lPin">—</strong></div>
+            </div>
+          </article>
+
+          <!-- Pet + Guild -->
+          <div class="two-column">
+            <article class="data-card glass">
+              <div class="card-heading">
+                <div>
+                  <span class="eyebrow">PET</span>
+                  <h3>Companion</h3>
+                </div>
+                <span class="card-symbol">05</span>
+              </div>
+
+              <div class="data-grid compact">
+                <div><span>ID</span><strong id="tId">—</strong></div>
+                <div><span>Level</span><strong id="tLvl">—</strong></div>
+                <div><span>Experience</span><strong id="tExp">—</strong></div>
+                <div><span>Selected</span><strong id="tSel">—</strong></div>
+                <div class="wide"><span>Skill</span><strong id="tSkill">—</strong></div>
+                <div class="wide"><span>Skin</span><strong id="tSkin">—</strong></div>
+              </div>
+            </article>
+
+            <article class="data-card glass">
+              <div class="card-heading">
+                <div>
+                  <span class="eyebrow">GUILD</span>
+                  <h3>Guild information</h3>
+                </div>
+                <span class="card-symbol">06</span>
+              </div>
+
+              <div class="guild-card">
+                <div class="guild-emblem">G</div>
+                <div class="guild-main">
+                  <strong id="gName">No guild data</strong>
+                  <span id="gId">—</span>
+                </div>
+              </div>
+
+              <div class="data-grid compact">
+                <div><span>Level</span><strong id="gLvl">—</strong></div>
+                <div><span>Members</span><strong id="gMem">—</strong></div>
+                <div class="wide"><span>Leader</span><strong id="gLeader">—</strong></div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Raw JSON -->
+          <article class="raw-card glass" id="raw" hidden>
+            <div class="raw-head">
+              <div>
+                <span class="eyebrow">DEVELOPER</span>
+                <h3>Raw API response</h3>
+              </div>
+              <button class="secondary-btn small" id="rawCopy" type="button">
+                <span id="rawCopyTxt">Copy JSON</span>
+              </button>
+            </div>
+            <pre id="rawBody"></pre>
+          </article>
+
+        </section>
+      </section>
+
+      <!-- SUPPORT -->
+      <section class="page" id="page-support" data-page-section="support">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">SUPPORT CENTER</span>
+            <h2>How can we help?</h2>
+            <p>Quick answers and troubleshooting for DropZone Player Lookup.</p>
+          </div>
+        </div>
+
+        <div class="support-grid">
+          <article class="support-card glass">
+            <div class="support-number">01</div>
+            <div class="feature-icon blue">⌕</div>
+            <h3>How do I search?</h3>
+            <p>Open Player Lookup, enter the player's numeric Free Fire UID and press Search Player.</p>
+          </article>
+
+          <article class="support-card glass">
+            <div class="support-number">02</div>
+            <div class="feature-icon violet">!</div>
+            <h3>UID not working?</h3>
+            <p>Make sure the UID contains numbers only. Some player data may also be unavailable depending on the server.</p>
+          </article>
+
+          <article class="support-card glass">
+            <div class="support-number">03</div>
+            <div class="feature-icon green">↻</div>
+            <h3>Data looks outdated?</h3>
+            <p>Run the lookup again. Player information depends on the data returned by the connected Free Fire service.</p>
+          </article>
+
+          <article class="support-card glass">
+            <div class="support-number">04</div>
+            <div class="feature-icon orange">i</div>
+            <h3>Missing information?</h3>
+            <p>Not every account exposes every field. Missing values are shown as unavailable instead of fake data.</p>
+          </article>
+        </div>
+
+        <article class="faq-card glass">
+          <div class="card-heading">
+            <div>
+              <span class="eyebrow">FAQ</span>
+              <h3>Frequently asked questions</h3>
+            </div>
+          </div>
+
+          <div class="faq-list">
+            <details>
+              <summary>Is DropZone free to use?</summary>
+              <p>Yes. The player lookup interface is designed to be accessible without creating an account.</p>
+            </details>
+
+            <details>
+              <summary>Do you store my searches?</summary>
+              <p>Recent search history is stored locally in your browser so you can quickly reuse UIDs. It is not needed for the lookup request itself.</p>
+            </details>
+
+            <details>
+              <summary>Why can't I see some player information?</summary>
+              <p>Free Fire account responses can vary. If a field is not returned by the service, DropZone cannot reliably display it.</p>
+            </details>
+
+            <details>
+              <summary>Can I use DropZone on mobile?</summary>
+              <p>Yes. The interface is responsive and optimized for phones, tablets and desktop screens.</p>
+            </details>
+          </div>
+        </article>
+      </section>
+
+      <!-- API / ABOUT -->
+      <section class="page" id="page-api" data-page-section="api">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">DROPZONE</span>
+            <h2>Fast. Clean. Useful.</h2>
+            <p>A lightweight Free Fire player lookup interface built for quick access to profile information.</p>
+          </div>
+        </div>
+
+        <div class="about-hero glass">
+          <div class="about-mark">D</div>
+          <div>
+            <span class="eyebrow">DROPZONE BY SENPAI</span>
+            <h3>Player information, without the clutter.</h3>
+            <p>
+              DropZone focuses on making Free Fire player lookup simple,
+              fast and visually clear across every device.
+            </p>
+          </div>
+        </div>
+
+        <div class="about-grid">
+          <article class="data-card glass">
+            <span class="eyebrow">01</span>
+            <h3>Player endpoint</h3>
+            <p>The frontend communicates with the existing <code>/player-info</code> endpoint to retrieve player data.</p>
+          </article>
+
+          <article class="data-card glass">
+            <span class="eyebrow">02</span>
+            <h3>Media</h3>
+            <p>Player banners and avatars continue using the existing media routes and fallback logic.</p>
+          </article>
+
+          <article class="data-card glass">
+            <span class="eyebrow">03</span>
+            <h3>Privacy-first history</h3>
+            <p>Recent UID history stays inside browser storage and can be cleared at any time.</p>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>DropZone</strong>
+        <span>Free Fire Player Lookup</span>
+      </div>
+      <span>Powered by <b>DropZone By Senpai</b></span>
+    </footer>
+
+    <!-- Theme picker -->
+    <div class="theme-panel glass" id="themePanel" hidden>
+      <div class="theme-panel-head">
+        <div>
+          <span class="eyebrow">APPEARANCE</span>
+          <h3>Choose a theme</h3>
+        </div>
+        <button class="icon-btn" id="themeClose" type="button">×</button>
+      </div>
+
+      <div class="theme-options">
+        <button class="theme-option active" data-theme-choice="midnight">
+          <span class="theme-preview midnight-preview"></span>
+          <span><b>Midnight</b><small>Deep & premium</small></span>
+        </button>
+
+        <button class="theme-option" data-theme-choice="ocean">
+          <span class="theme-preview ocean-preview"></span>
+          <span><b>Ocean</b><small>Cool & clean</small></span>
+        </button>
+
+        <button class="theme-option" data-theme-choice="violet">
+          <span class="theme-preview violet-preview"></span>
+          <span><b>Violet</b><small>Elegant purple</small></span>
+        </button>
+
+        <button class="theme-option" data-theme-choice="sunset">
+          <span class="theme-preview sunset-preview"></span>
+          <span><b>Sunset</b><small>Warm & bold</small></span>
+        </button>
+
+        <button class="theme-option" data-theme-choice="light">
+          <span class="theme-preview light-preview"></span>
+          <span><b>Light</b><small>Bright & minimal</small></span>
+        </button>
       </div>
     </div>
 
-  </section>
+    <div class="toast-container" id="toastContainer"></div>
 
-  <footer>Powered by <b>DropZone By Senpai</b></footer>
+  </div>
 
-</main>
-<script src="/static/app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
