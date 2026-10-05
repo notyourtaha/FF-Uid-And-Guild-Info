@@ -1,117 +1,256 @@
-# Lokaya_API — Free Fire Player Lookup
+Yeah bro — you want a real GitHub README, not a giant documentation dump. Clean, premium, compact, and something that looks like an actual production project.
 
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](API_DOCS.md)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/flask-3.x-lightgrey.svg)](https://flask.palletsprojects.com/)
+Replace README.md with this:
 
-A Flask-based Free Fire player lookup API + web app. Enter any player UID to get
-live profile stats, ranks, guild info and official profile media (banner/avatar
-rendered server-side from Garena CDN assets). The backend is CORS-enabled, so it
-can also serve as the API for a separate multi-tool frontend.
+# DropZone Free Fire API
 
-Full API reference: **[API_DOCS.md](API_DOCS.md)**
+<p align="center">
+  <strong>Free Fire player data & guild verification infrastructure.</strong>
+</p>
 
----
-
-## Features
-
-- **Live player lookup** — nickname, level, EXP, likes, region, ranks, guild, pet, loadout and more.
-- **Official profile media** — banner/avatar WebP images composited server-side from official Garena CDN textures, with automatic local fallback.
-- **Glassmorphism web UI** — clean white frosted-glass interface with copyable raw JSON output.
-- **Multi-region support** — `BD IND SG VN TH BR US NA SAC ID RU TW ME PK CIS EUROPE` (explicit `region` optional; auto-detects when omitted).
-- **Backend-ready** — CORS enabled; `/player-info` and media endpoints can be called directly from any frontend.
+<p align="center">
+  <img src="https://img.shields.io/badge/DropZone-API-111827?style=flat-square" alt="DropZone">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white" alt="Flask">
+  <img src="https://img.shields.io/badge/API-REST-2563EB?style=flat-square" alt="REST API">
+  <img src="https://img.shields.io/badge/Status-Active-16A34A?style=flat-square" alt="Status">
+</p>
 
 ---
 
-## Quickstart
+## Overview
 
-**Requirements:** Python `3.10`+ on Windows, Linux or macOS.
+**DropZone Free Fire API** is the backend service powering Free Fire
+player and guild verification for the **DropZone** platform.
 
-```bash
-# 1. Create a virtual environment
-python -m venv .venv
-```
-
-**Windows (PowerShell):**
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m flask --app app run --host 127.0.0.1 --port 5055 --no-debugger --no-reload
-```
-
-**Linux / macOS:**
-
-```bash
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m flask --app app run --host 127.0.0.1 --port 5055 --no-debugger --no-reload
-```
-
-Shortcut on Windows:
-
-```powershell
-pwsh -NoProfile -File tools/start-local.ps1
-```
-
-Open `http://127.0.0.1:5055` and search any player UID.
-
----
-
-## API (summary)
-
-```http
-GET /player-info?uid={uid}&region={region}
-GET /api/banner/banner_{uid}.webp?region={region}
-GET /api/avatar/avatar_{uid}.webp?region={region}
-GET /refresh          # refresh all regional gateway tokens
-```
-
-```js
-const data = await (await fetch('http://127.0.0.1:5055/player-info?uid=4422076728')).json();
-console.log(data.basicInfo.nickname, data.mediaInfo.bannerUrl);
-```
-
-Parameters, response schema, error codes and media headers are documented in
-**[API_DOCS.md](API_DOCS.md)**.
-
----
-
-## Project structure
+It provides server-side player lookups, guild information, profile media and,
+most importantly, a dedicated verification layer that validates whether a
+submitted Guild UID actually belongs to a specific Player UID.
 
 ```text
-app.py             # Flask app, routes, token management
-credentials.py     # service-account resolution (accounts.txt + env overrides)
-protocol.py        # OB protocol profiles, headers, login decoding
-official_media.py  # CDN media rendering (ASTC -> WebP)
-proto/             # protobuf message definitions
-templates/         # web UI (glassmorphism)
-static/            # web UI styles + frontend JS
-fonts/             # nickname rendering fonts (required, do not delete)
-accounts.txt       # active service accounts (UID PASSWORD REGION rows)
-tools/             # local runner + live diagnostics
-vercel.json        # Vercel deployment config
-API_DOCS.md        # full API reference
-```
+Player UID + Guild UID
+          │
+          ▼
+     DropZone API
+          │
+          ▼
+    Player Lookup
+          │
+          ▼
+   Actual Guild UID
+          │
+          ▼
+       Compare
+       ┌──┴──┐
+       ▼     ▼
+   VERIFIED  FAILED
+
 
 ---
 
-## Configuration
+Core API
 
-Service accounts live in `accounts.txt` (one `UID PASSWORD REGION` row per scope).
-Optional environment overrides: `FREEFIRE_<SCOPE>_UID` + `FREEFIRE_<SCOPE>_PASSWORD`
-where `SCOPE` is a region (`BR`, `VN`, …) or a group (`AMERICAS`, `GLOBAL`).
-Restart the server after changing credentials so cached tokens are cleared.
-See [API_DOCS.md](API_DOCS.md) for the full account guide.
+Guild Verification
+
+GET /verify?uid={playerUid}&guildUid={guildUid}
+
+Example:
+
+GET /verify?uid=2256462035&guildUid=3086634389
+
+Response:
+
+{
+  "verified": true,
+  "player": {
+    "uid": "2256462035",
+    "name": "Player Name",
+    "region": "PK",
+    "level": 67,
+    "likes": 9975
+  },
+  "guild": {
+    "uid": "3086634389",
+    "name": "Guild Name",
+    "level": 6,
+    "members": 23,
+    "capacity": 55
+  }
+}
+
+The verification decision is performed server-side by comparing the player's actual Guild UID with the submitted Guild UID.
+
+Player Lookup
+
+GET /player-info?uid={uid}&region={region}
+
+Provides the available player profile and guild information.
+
+Profile Media
+
+GET /api/banner/banner_{uid}.webp?region={region}
+GET /api/avatar/avatar_{uid}.webp?region={region}
+
+Token Management
+
+GET /refresh
+POST /refresh
+
 
 ---
 
-## Developer
+Features
 
-- **LokayaGfx** — *Lokaya_API*
+⚡ Live Free Fire player lookup
+
+🛡️ Server-side Player/Guild verification
+
+🌍 Multi-region support
+
+👤 Player & guild information
+
+🖼️ Profile banner and avatar rendering
+
+🔐 Server-side service credentials
+
+🌐 CORS-enabled API
+
+🧩 Modular Flask architecture
+
+🚀 Ready for deployment and DropZone integration
+
+
 
 ---
 
-## Disclaimer
+Supported Regions
 
-Unofficial community project. Not affiliated with or endorsed by Garena.
-Use in accordance with Garena / Free Fire terms of service and local privacy regulations.
+BD  IND  SG  VN  TH  BR  US  NA
+SAC ID   RU  TW  ME  PK  CIS EUROPE
+
+Region can be supplied explicitly or resolved automatically where supported.
+
+
+---
+
+Architecture
+
+DropZone Platform
+                        │
+                        ▼
+               ┌─────────────────┐
+               │  DropZone API   │
+               │     Flask       │
+               └────────┬────────┘
+                        │
+             ┌──────────┼──────────┐
+             ▼          ▼          ▼
+          Player      Guild      Media
+          Lookup     Verify     Services
+             │          │          │
+             └──────────┼──────────┘
+                        ▼
+                 Free Fire Services
+
+The frontend never receives the underlying service credentials.
+
+
+---
+
+Project Structure
+
+app.py              API application
+credentials.py      Credential resolution
+protocol.py         Free Fire protocol handling
+official_media.py   Profile media processing
+proto/              Protocol definitions
+templates/          Web interface
+static/             Frontend assets
+tools/              Diagnostics
+fonts/              Rendering resources
+API_DOCS.md         API reference
+requirements.txt    Python dependencies
+
+
+---
+
+Quick Start
+
+Requirements
+
+Python 3.10+
+
+pip
+
+Git
+
+
+Install
+
+git clone https://github.com/notyourtaha/FF-Uid-And-Guild-Info.git
+cd FF-Uid-And-Guild-Info
+
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt
+
+Run
+
+python -m flask --app app run \
+  --host 127.0.0.1 \
+  --port 5055 \
+  --no-debugger \
+  --no-reload
+
+API:
+
+http://127.0.0.1:5055
+
+
+---
+
+Configuration
+
+Credentials are loaded server-side through environment variables or local configuration.
+
+FREEFIRE_<SCOPE>_UID
+FREEFIRE_<SCOPE>_PASSWORD
+
+Example:
+
+FREEFIRE_GLOBAL_UID
+FREEFIRE_GLOBAL_PASSWORD
+
+Never expose or commit real credentials.
+
+
+---
+
+Production
+
+For production deployments, use a WSGI server such as Gunicorn:
+
+gunicorn -w 1 -b 0.0.0.0:$PORT app:app
+
+Production credentials should be configured through the hosting provider's secret/environment-variable system.
+
+
+---
+
+API Documentation
+
+Detailed endpoint and response documentation:
+
+API_DOCS.md
+
+
+---
+
+Project
+
+DropZone
+
+Free Fire verification infrastructure built for the DropZone platform.
+
+> Unofficial community project. Not affiliated with, endorsed by, or sponsored by Garena or Free Fire. Use responsibly and in accordance with applicable platform terms and local regulations.
